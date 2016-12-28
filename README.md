@@ -2,9 +2,10 @@
 SalesforceのAPEXのみでFacebook Messenger Botを作成するサンプルコードです。
 
 ## 実装ステップ
-1. 次の2ファイルをコピーして、APEXクラスを2つ作成します
+1. 次の2ファイルをコピーして、APEXクラスを3つ作成します
   + fmbWebhook.apxc(トークンを書き換える場所が2箇所あります)
   + fmbMessage.apxc
+  + fmbUserProfile.apxc
 2. サイト機能で外部公開用のサイトを作成します
 3. 「公開アクセス設定」で、"fmbWebhook"クラスにアクセスできるようにします
   + このサンプルでは、"[サイトのURL]/services/apexrest/c/fmbWebhook"でこのクラスにHTTPでアクセスできるようになります
