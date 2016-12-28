@@ -1,0 +1,2 @@
+# apexfacebookmessengerbot
+SalesforceのAPEXのみでFacebook Messenger Botを作成するサンプルコードです。
