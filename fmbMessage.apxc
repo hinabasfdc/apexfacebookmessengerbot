@@ -1,0 +1,220 @@
+public class fmbMessage {
+  public static void consumeObject(JSONParser parser) {
+    Integer depth = 0;
+    do {
+      JSONToken curr = parser.getCurrentToken();
+      if (curr == JSONToken.START_OBJECT ||
+        curr == JSONToken.START_ARRAY) {
+        depth++;
+      } else if (curr == JSONToken.END_OBJECT ||
+        curr == JSONToken.END_ARRAY) {
+        depth--;
+      }
+    } while (depth > 0 && parser.nextToken() != null);
+  }
+
+  public class Sender {
+    public String id {get;set;}
+
+    public Sender(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'id') {
+              id = parser.getText();
+            } else {
+              System.debug(LoggingLevel.WARN, 'Sender consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public class Entry {
+    public List<Messaging> messaging {get;set;}
+    public Long ftime {get;set;}
+    public String id {get;set;}
+
+    public Entry(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'messaging') {
+              messaging = new List<Messaging>();
+              while (parser.nextToken() != JSONToken.END_ARRAY) {
+                messaging.add(new Messaging(parser));
+              }
+            } else if (text == 'time') {
+              ftime = parser.getLongValue();
+            } else if (text == 'id') {
+              id = parser.getText();
+            } else {
+              System.debug(LoggingLevel.WARN, 'Entry consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public class Message {
+    public String ftext {get;set;}
+    public Integer seq {get;set;}
+    public String mid {get;set;}
+    public Quick_reply quick_reply {get;set;}
+    public List<Attachments> attachments {get;set;}
+
+    public Message(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'text') {
+              ftext = parser.getText();
+            } else if (text == 'seq') {
+              seq = parser.getIntegerValue();
+            } else if (text == 'mid') {
+              mid = parser.getText();
+            } else if (text == 'quick_reply') {
+              quick_reply = new Quick_reply(parser);
+                        } else if (text == 'attachments') {
+              attachments = new List<Attachments>();
+              while (parser.nextToken() != JSONToken.END_ARRAY) {
+                attachments.add(new Attachments(parser));
+              }
+            } else {
+              System.debug(LoggingLevel.WARN, 'Message consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public String object_Z {get;set;} // in json: object
+  public List<Entry> entry {get;set;}
+
+  public fmbMessage(JSONParser parser) {
+    while (parser.nextToken() != JSONToken.END_OBJECT) {
+      if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+        String text = parser.getText();
+        if (parser.nextToken() != JSONToken.VALUE_NULL) {
+          if (text == 'object') {
+            object_Z = parser.getText();
+          } else if (text == 'entry') {
+            entry = new List<Entry>();
+            while (parser.nextToken() != JSONToken.END_ARRAY) {
+              entry.add(new Entry(parser));
+            }
+          } else {
+            System.debug(LoggingLevel.WARN, 'Root consuming unrecognized property: '+text);
+            consumeObject(parser);
+          }
+        }
+      }
+    }
+  }
+
+      public class Quick_reply {
+    public String payload {get;set;}
+
+    public Quick_reply(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'payload') {
+              payload = parser.getText();
+            } else {
+              System.debug(LoggingLevel.WARN, 'Quick_reply consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public class Messaging {
+    public Message message {get;set;}
+    public Long timestamp {get;set;}
+    public Sender sender {get;set;}
+    public Sender recipient {get;set;}
+
+    public Messaging(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'message') {
+              message = new Message(parser);
+            } else if (text == 'timestamp') {
+              timestamp = parser.getLongValue();
+            } else if (text == 'sender') {
+              sender = new Sender(parser);
+            } else if (text == 'recipient') {
+              recipient = new Sender(parser);
+            } else {
+              System.debug(LoggingLevel.WARN, 'Messaging consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public class Payload {
+    public String url {get;set;}
+
+    public Payload(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'url') {
+              url = parser.getText();
+            } else {
+              System.debug(LoggingLevel.WARN, 'Payload consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public class Attachments {
+    public String type_Z {get;set;} // in json: type
+    public Payload payload {get;set;}
+
+    public Attachments(JSONParser parser) {
+      while (parser.nextToken() != JSONToken.END_OBJECT) {
+        if (parser.getCurrentToken() == JSONToken.FIELD_NAME) {
+          String text = parser.getText();
+          if (parser.nextToken() != JSONToken.VALUE_NULL) {
+            if (text == 'type') {
+              type_Z = parser.getText();
+            } else if (text == 'payload') {
+              payload = new Payload(parser);
+            } else {
+              System.debug(LoggingLevel.WARN, 'Attachments consuming unrecognized property: '+text);
+              consumeObject(parser);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  public static fmbMessage parse(String json) {
+    return new fmbMessage(System.JSON.createParser(json));
+  }
+}
