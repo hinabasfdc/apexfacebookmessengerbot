@@ -1,0 +1,13 @@
+public class fmbUserProfile {
+
+  public String first_name;
+  public String last_name;
+  public String profile_pic;
+  public String locale;
+  public Integer timezone;
+  public String gender;
+
+  public static fmbUserProfile parse(String json) {
+    return (fmbUserProfile) System.JSON.deserialize(json, fmbUserProfile.class);
+  }
+}
