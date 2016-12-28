@@ -1,0 +1,89 @@
+@RestResource(urlMapping='/c/*')
+global class fmbWebhook {
+
+        @HttpGet
+        global static void getWebhook(){
+                String VERIFY_TOKEN = '[[認証用のトークン(Facebook側の設定で指定するもの)に置き換えてください]]';
+                String MODE = 'subscribe';
+
+                String reqVerifyToken = RestContext.request.params.get('hub.verify_token');
+                String reqMode = RestContext.request.params.get('hub.mode');
+                String ret = '';
+
+                if(VERIFY_TOKEN == reqVerifyToken && MODE == reqMode) {
+                        ret = RestContext.request.params.get('hub.challenge');
+                }
+
+                RestContext.response.addHeader('Content-Type', 'text/plain');
+                RestContext.response.responseBody = Blob.valueOf(ret);
+        }
+
+        @HttpPost
+        global static void postWebhook() {
+                String PAGE_ACCESS_TOKEN = '[[Botと繋がっているページのアクセストークン(Facebook Developerの設定から取得)に置き換えてください]]';
+                String ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages?access_token=' + PAGE_ACCESS_TOKEN;
+
+                //Facebookから送られてきたJSONをAPEXクラスにパース
+                fmbMessage mes = fmbMessage.parse(RestContext.request.requestBody.toString());
+
+                //送り主IDの取得
+                String userid = mes.Entry[0].Messaging[0].Sender.id;
+                //返信メッセージ変数の宣言
+                String snd_msg = '';
+
+                if(mes.Entry[0].Messaging[0].Message.ftext != null) {
+
+                        //オウム返し
+                        snd_msg = getUserName(PAGE_ACCESS_TOKEN, userid) + 'さん、' + mes.Entry[0].Messaging[0].Message.ftext;
+                        sendMessage(PAGE_ACCESS_TOKEN, createReplayMessage(userid, snd_msg));
+                }
+
+        }
+
+        private static String getUserName(String PAGE_ACCESS_TOKEN, String senderid) {
+                String username = '';
+                String ENDPOINT = 'https://graph.facebook.com/v2.6/' + senderid + '?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=' + PAGE_ACCESS_TOKEN;
+
+                HttpRequest snd_req = new HttpRequest();
+                snd_req.setEndpoint(ENDPOINT);
+                snd_req.setMethod('GET');
+
+                Http http = new Http();
+                HttpResponse snd_res = http.send(snd_req);
+
+                fmbUserProfile upro = fmbUserProfile.parse(snd_res.getBody());
+                username = upro.last_name;
+
+                return username;
+        }
+
+        private static String createReplayMessage(String userid, String snd_msg){
+                //返信用JSON組み立て
+                JSONGenerator gen = JSON.createGenerator(true);
+                gen.writeStartObject();
+                gen.writeFieldName('recipient');
+                gen.writeStartObject();
+                gen.writeStringField('id', userid);
+                gen.writeEndObject();
+                gen.writeFieldName('message');
+                gen.writeStartObject();
+                gen.writeStringField('text', snd_msg);
+                gen.writeEndObject();
+                gen.writeEndObject();
+
+                return gen.getAsString();
+        }
+
+        private static void sendMessage(String PAGE_ACCESS_TOKEN, String jsonStr){
+                String ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages?access_token=' + PAGE_ACCESS_TOKEN;
+
+                HttpRequest snd_req = new HttpRequest();
+                snd_req.setEndpoint(ENDPOINT);
+                snd_req.setMethod('POST');
+                snd_req.setHeader('Content-Type', 'application/json');
+                snd_req.setBody(jsonStr);
+
+                Http http = new Http();
+                HttpResponse snd_res = http.send(snd_req);
+        }
+}
